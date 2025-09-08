@@ -31,22 +31,14 @@ A simple web application to display a calendar and populate it with events from 
 
 ### Running with Docker Compose
 
-**1. Important First Step!**
+1.  **Build and Run**
 
-Before running `docker-compose` for the first time, you **must** create an empty `events.json` file in the root of the project. This is required to ensure Docker correctly mounts a file, not a directory.
-
-```bash
-touch events.json
-```
-
-**2. Build and Run**
-
-Now, you can build and run the application:
+    Simply build and run the application using Docker Compose. The server will automatically create the necessary data file inside a Docker-managed volume.
 ```bash
 docker-compose up --build
 ```
 
-**3. View the Application**
+**2. View the Application**
 
 Open your browser and navigate to `http://localhost:8282`.
 
