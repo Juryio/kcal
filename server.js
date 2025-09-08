@@ -16,12 +16,11 @@ const file = path.join(dataDir, 'events.json');
 await fs.mkdir(dataDir, { recursive: true });
 
 const adapter = new JSONFile(file);
-const db = new Low(adapter);
+// Pass default data to the constructor
+const db = new Low(adapter, { events: [] });
 
-// Read data from JSON file, initializing with a default structure if empty
+// Read data from JSON file, creating the file with default data if it doesn't exist
 await db.read();
-db.data ||= { events: [] };
-await db.write();
 
 // --- Express App Setup ---
 const app = express();
@@ -41,10 +40,8 @@ app.post('/api/events', async (req, res) => {
         return res.status(400).json({ message: 'Invalid data format.' });
     }
 
-    const monthsToUpdate = [...new Set(newEvents.map(event => event.date.substring(0, 7)))];
-
-    db.data.events = db.data.events.filter(event => !monthsToUpdate.includes(event.date.substring(0, 7)));
-    db.data.events.push(...newEvents);
+    // Simple Overwrite: The calendar will now always reflect exactly what was last pasted.
+    db.data.events = newEvents;
 
     await db.write();
     res.status(201).json({ message: 'Events saved successfully.' });
