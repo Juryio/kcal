@@ -16,8 +16,19 @@ const readEvents = () => {
     if (!fs.existsSync(eventsFilePath)) {
         return [];
     }
-    const data = fs.readFileSync(eventsFilePath);
-    return JSON.parse(data);
+    try {
+        const data = fs.readFileSync(eventsFilePath, 'utf8');
+        // If the file is empty, it's not valid JSON. Return an empty array.
+        if (data.trim() === '') {
+            return [];
+        }
+        return JSON.parse(data);
+    } catch (error) {
+        console.error("Error reading or parsing events.json:", error);
+        // If there's an error (e.g., malformed JSON), return an empty array
+        // to prevent the application from crashing.
+        return [];
+    }
 };
 
 // Helper function to write events to file
