@@ -2,7 +2,7 @@ FROM node:18-slim
 
 # Install `su-exec` dependency, which is a lightweight alternative to `sudo` or `gosu`.
 # We also update the package list first and clean up the cache afterward.
-RUN apk update && apk add --no-cache su-exec
+RUN apt-get update && apt-get install -y --no-install-recommends su-exec && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/node/app
 
