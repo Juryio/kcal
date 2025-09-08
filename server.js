@@ -4,9 +4,13 @@ const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 8282;
-const eventsFilePath = path.join(__dirname, 'events.json');
+const dataDir = path.join(__dirname, 'data');
+const eventsFilePath = path.join(dataDir, 'events.json');
 
 async function initialize() {
+    // Ensure the data directory exists
+    await fs.mkdir(dataDir, { recursive: true });
+
     try {
         const stats = await fs.stat(eventsFilePath);
         if (stats.isDirectory()) {

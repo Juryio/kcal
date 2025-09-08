@@ -1,20 +1,21 @@
-# Use an official Node.js runtime as a parent image
 FROM node:18-slim
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+WORKDIR /home/node/app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy package files and install dependencies
+# This is done as root, which is fine.
 COPY package*.json ./
-
-# Install any needed packages
 RUN npm install
 
-# Bundle app source
+# Copy app source
 COPY . .
 
-# Make port 8080 available to the world outside this container
+# Copy entrypoint and make it executable
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8282
 
-# Define the command to run the app
+ENTRYPOINT ["/home/node/app/entrypoint.sh"]
+# The CMD will be passed to the entrypoint, which will then execute it as the 'node' user.
 CMD [ "npm", "start" ]

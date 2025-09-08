@@ -5,7 +5,7 @@ services:
     ports:
       - "8282:8282"
     volumes:
-      - ./events.json:/usr/src/app/events.json
-    # It's good practice to create the events.json file on the host
-    # if it doesn't exist, to avoid Docker creating it as a directory.
-    # You can do this by running `touch events.json` before `docker-compose up`.
+      - event-data:/home/node/app/data
+
+volumes:
+  event-data:
