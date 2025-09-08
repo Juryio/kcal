@@ -94,16 +94,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const date = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
 
-                    events.push({
+                    const eventData = {
                         date: date,
                         title: `${title} ${startTime}-${endTime}`
-                    });
+                    };
 
-                    i += 3;
+                    // Check for an optional note on the next line
+                    const nextLine4 = lines[i + 4];
+                    if (nextLine4 && isNaN(parseInt(nextLine4, 10)) && !/^\d{2}:\d{2}$/.test(nextLine4)) {
+                        eventData.note = nextLine4;
+                        i += 4; // Consume the note line as well
+                    } else {
+                        i += 3; // Consume only the event lines
+                    }
+
+                    events.push(eventData);
                 }
             }
         }
         return events;
+    }
+
+    function getShiftType(event) {
+        const title = event.title.toLowerCase();
+        if (title.includes('holiday')) return 'holiday';
+
+        const timeMatch = event.title.match(/(\d{2}):\d{2}/);
+        if (timeMatch) {
+            const startHour = parseInt(timeMatch[1], 10);
+            if (startHour < 12) return 'morning';
+            return 'evening';
+        }
+
+        return 'default';
     }
 
     async function renderCalendar(month, year) {
@@ -111,10 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
         calendar.innerHTML = '';
         monthYearDisplay.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
 
-        const firstDay = new Date(year, month, 1).getDay();
+        // --- Monday Start Logic ---
+        let firstDay = new Date(year, month, 1).getDay();
+        firstDay = (firstDay === 0) ? 6 : firstDay - 1;
+
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         daysOfWeek.forEach(day => {
             const dayHeader = document.createElement('div');
             dayHeader.classList.add('day-header');
@@ -132,6 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const dayCell = document.createElement('div');
             dayCell.classList.add('day');
 
+            // Highlight Today
+            const todayDate = new Date();
+            if (i === todayDate.getDate() && month === todayDate.getMonth() && year === todayDate.getFullYear()) {
+                dayCell.classList.add('today');
+            }
+
             const dateElement = document.createElement('div');
             dateElement.classList.add('date');
             dateElement.textContent = i;
@@ -147,7 +179,31 @@ document.addEventListener('DOMContentLoaded', () => {
             dayEvents.forEach(event => {
                 const eventElement = document.createElement('div');
                 eventElement.classList.add('event');
-                eventElement.textContent = event.title;
+
+                // --- Color Coding Logic ---
+                const shiftType = getShiftType(event);
+                eventElement.classList.add(`event-${shiftType}`);
+
+                // Create structured content for the event block
+                const timeMatch = event.title.match(/(\d{2}:\d{2}-\d{2}:\d{2})/);
+                const timeText = timeMatch ? timeMatch[1] : '';
+                const titleText = event.title.replace(timeText, '').trim();
+
+                const timeElement = document.createElement('span');
+                timeElement.classList.add('event-time');
+                timeElement.textContent = timeText;
+
+                eventElement.textContent = titleText;
+                eventElement.prepend(timeElement);
+
+                // --- Render Note ---
+                if (event.note) {
+                    const noteElement = document.createElement('div');
+                    noteElement.classList.add('event-note');
+                    noteElement.textContent = event.note;
+                    eventElement.appendChild(noteElement);
+                }
+
                 eventsContainer.appendChild(eventElement);
             });
 
