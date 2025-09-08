@@ -1,64 +1,59 @@
-body {
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: purple;
-    margin: 0;
+/* --- Color Palette and Base Setup --- */
+:root {
+    --font-family: 'Open Sans', sans-serif;
+
+    /* Light Mode Palette */
+    --bg-color: #f0f2f5;
+    --text-color: #1c1e21;
+    --calendar-bg: #ffffff;
+    --day-bg: #ffffff;
+    --day-border: #dadde1;
+    --day-header-text: #606770;
+    --today-indicator: #1877f2;
+
+    /* Dark Mode Palette */
+    --dark-bg-color: #18191a;
+    --dark-text-color: #e4e6eb;
+    --dark-calendar-bg: #242526;
+    --dark-day-bg: #242526;
+    --dark-day-border: #3a3b3c;
+    --dark-day-header-text: #b0b3b8;
 }
 
-h1 {
-    color: white;
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background-color: var(--dark-bg-color);
+    color: var(--dark-text-color);
+}
+
+/* --- Main Layout --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto 20px auto;
 }
 
 .container {
     display: flex;
-    gap: 20px;
-    width: 90%;
-    max-width: 1200px;
-    margin-top: 20px;
+    gap: 30px;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .calendar-container {
     flex: 3;
-}
-
-#calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    background-color: #fff;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.day {
-    border: 1px solid #ddd;
-    min-height: 100px;
-    padding: 5px;
-    background-color: #fafafa;
-    position: relative;
-}
-
-.day .date {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.day .events {
-    font-size: 0.8em;
-}
-
-.event {
-    background-color: #007bff;
-    color: white;
-    padding: 2px 4px;
-    border-radius: 4px;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .input-container {
@@ -67,115 +62,182 @@ h1 {
     flex-direction: column;
 }
 
-textarea {
-    width: 100%;
-    height: 300px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 10px;
-    font-family: monospace;
-}
-
-button {
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-}
-
-button:hover {
-    background-color: #218838;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 90%;
-    max-width: 1200px;
-    margin-top: 20px;
-}
-
-#dark-mode-toggle {
-    background-color: #555;
-}
-
-#dark-mode-toggle:hover {
-    background-color: #777;
-}
-
+/* --- Calendar Header --- */
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding: 0 10px;
 }
 
 .calendar-header h2 {
     margin: 0;
+    font-weight: 600;
+    font-size: 1.5em;
 }
 
-.calendar-header button {
-    background-color: #007bff;
-    padding: 5px 10px;
+body.dark-mode .calendar-header h2 {
+    color: var(--dark-text-color);
 }
 
-.calendar-header button:hover {
-    background-color: #0056b3;
-}
-
-/* Dark Mode */
-body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-}
-
-body.dark-mode h1,
-body.dark-mode h2 {
-    color: #e0e0e0;
+/* --- Calendar Grid --- */
+#calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px; /* Use gap for borders */
+    background-color: var(--day-border);
+    border: 1px solid var(--day-border);
+    border-radius: 8px;
+    overflow: hidden; /* Ensures child borders conform to parent's border-radius */
 }
 
 body.dark-mode #calendar {
-    background-color: #1e1e1e;
-    border-color: #333;
+    background-color: var(--dark-day-border);
+    border-color: var(--dark-day-border);
 }
 
-body.dark-mode .day {
-    background-color: #2a2a2a;
-    border-color: #444;
+.day-header {
+    text-align: center;
+    font-weight: 600;
+    padding: 10px 0;
+    background-color: var(--calendar-bg);
+    color: var(--day-header-text);
 }
 
 body.dark-mode .day-header {
-    color: #bbb;
+    background-color: var(--dark-calendar-bg);
+    color: var(--dark-day-header-text);
 }
 
-body.dark-mode .event {
-    background-color: #0d47a1;
+.day {
+    min-height: 120px;
+    padding: 8px;
+    background-color: var(--day-bg);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+body.dark-mode .day {
+    background-color: var(--dark-day-bg);
+}
+
+.day .date {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.day.today .date {
+    background-color: var(--today-indicator);
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Event Blocks --- */
+.event {
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
+.event-time {
+    font-weight: 600;
+    display: block;
+}
+
+.event-note {
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Color Coding for Events */
+.event-morning { background-color: #E6F4EA; color: #1E8449; }
+.event-evening { background-color: #EBF5FB; color: #2E86C1; }
+.event-holiday { background-color: #FEF9E7; color: #B7950B; }
+.event-default { background-color: #EAEDED; color: #566573; }
+
+body.dark-mode .event-morning { background-color: #143621; color: #A9DFBF; }
+body.dark-mode .event-evening { background-color: #153C54; color: #AED6F1; }
+body.dark-mode .event-holiday { background-color: #4C3E0C; color: #F7DC6F; }
+body.dark-mode .event-default { background-color: #2C3A47; color: #ABB2B9; }
+
+
+/* --- Input & Buttons --- */
+textarea {
+    width: 100%;
+    height: 300px;
+    margin-bottom: 10px;
+    border: 1px solid var(--day-border);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: var(--font-family);
+    background-color: var(--calendar-bg);
+    color: var(--text-color);
+    resize: vertical;
 }
 
 body.dark-mode textarea {
-    background-color: #333;
-    color: #e0e0e0;
-    border-color: #555;
+    background-color: var(--dark-day-bg);
+    color: var(--dark-text-color);
+    border-color: var(--dark-day-border);
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+#populate-calendar {
+    background-color: #28a745;
+    color: white;
+}
+#populate-calendar:hover {
+    background-color: #218838;
+}
+
+.calendar-header button {
+    background-color: #e4e6eb;
+    color: #1c1e21;
+}
+.calendar-header button:hover {
+    background-color: #d1d3d6;
+}
+
+#dark-mode-toggle {
+    background-color: #e4e6eb;
+    color: #1c1e21;
+}
+#dark-mode-toggle:hover {
+    background-color: #d1d3d6;
 }
 
 body.dark-mode button {
-    background-color: #007bff;
+    background-color: #3a3b3c;
+    color: #e4e6eb;
 }
-
 body.dark-mode button:hover {
-    background-color: #0056b3;
+    background-color: #4e4f50;
 }
-
-body.dark-mode #dark-mode-toggle {
-    background-color: #eee;
-    color: #121212;
+body.dark-mode #populate-calendar {
+    background-color: #218838;
+    color: white;
 }
-
-body.dark-mode #dark-mode-toggle:hover {
-    background-color: #ccc;
+body.dark-mode #populate-calendar:hover {
+    background-color: #28a745;
 }
