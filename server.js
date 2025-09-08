@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 
@@ -7,7 +6,7 @@ const app = express();
 const port = process.env.PORT || 8282;
 
 app.use(express.static('public'));
-app.use(bodyParser.json());
+app.use(express.json());
 
 const eventsFilePath = path.join(__dirname, 'events.json');
 
