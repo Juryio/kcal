@@ -29,19 +29,23 @@ A simple web application to display a calendar and populate it with events from 
     ```
 4.  Open your browser and navigate to `http://localhost:8080`.
 
-### Running with Docker
+### Running with Docker Compose
 
-1.  Build the Docker image:
+1.  Make sure you have Docker and Docker Compose installed.
+2.  Create an empty `events.json` file in the root of the project:
     ```bash
-    docker build -t shift-calendar .
+    touch events.json
     ```
-2.  Run the Docker container:
+3.  Build and run the application:
     ```bash
-    docker run -p 8080:8080 -v $(pwd)/events.json:/usr/src/app/events.json shift-calendar
+    docker-compose up --build
     ```
-3.  Open your browser and navigate to `http://localhost:8080`.
+4.  Open your browser and navigate to `http://localhost:8080`.
 
-    **Note:** The `-v $(pwd)/events.json:/usr/src/app/events.json` part is optional. It mounts the `events.json` file from your local machine into the container, allowing the event data to persist even if the container is removed. You may need to create an empty `events.json` file in the root of the project first (`touch events.json`).
+To stop the application, press `Ctrl+C` in the terminal where `docker-compose` is running, and then run:
+```bash
+docker-compose down
+```
 
 ## How to Use
 
