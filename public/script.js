@@ -42,19 +42,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseRawText(text) {
-        const lines = text.split('\n').filter(line => line.trim() !== '');
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         const events = [];
-        const dateRegex = /^(\d{4}-\d{2}-\d{2}):\s*(.*)$/;
 
-        lines.forEach(line => {
-            const match = line.match(dateRegex);
-            if (match) {
-                events.push({
-                    date: match[1],
-                    title: match[2].trim()
-                });
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        let year, month;
+
+        const monthYearRegex = new RegExp(`(${monthNames.join('|')})\\s+(\\d{4})`, 'i');
+        const monthYearMatch = text.match(monthYearRegex);
+
+        if (monthYearMatch) {
+            year = parseInt(monthYearMatch[2], 10);
+            month = monthNames.findIndex(m => m.toLowerCase() === monthYearMatch[1].toLowerCase());
+        } else {
+            console.error("Could not determine month and year from text. Please ensure the month and year (e.g., 'September 2025') are present.");
+            alert("Could not determine the month and year from the pasted text. Please make sure it's included.");
+            return [];
+        }
+
+        let currentDay = 0;
+        let currentMonth = month;
+        let currentYear = year;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            if (/^\d{1,2}$/.test(line)) {
+                const day = parseInt(line, 10);
+
+                if (day < currentDay && currentDay > 20) { // Heuristic for month rollover
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                }
+                currentDay = day;
+
+                const nextLine1 = lines[i + 1];
+                const nextLine2 = lines[i + 2];
+                const nextLine3 = lines[i + 3];
+
+                const timeRegex = /^\d{2}:\d{2}$/;
+                if (nextLine1 && timeRegex.test(nextLine1) &&
+                    nextLine2 && timeRegex.test(nextLine2) &&
+                    nextLine3 && isNaN(parseInt(nextLine3, 10))) {
+
+                    const startTime = nextLine1;
+                    const endTime = nextLine2;
+                    const title = nextLine3;
+
+                    const date = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+
+                    events.push({
+                        date: date,
+                        title: `${title} ${startTime}-${endTime}`
+                    });
+
+                    i += 3;
+                }
             }
-        });
+        }
         return events;
     }
 
