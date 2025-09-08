@@ -3,7 +3,7 @@ services:
   web:
     build: .
     ports:
-      - "8080:8080"
+      - "8282:8282"
     volumes:
       - ./events.json:/usr/src/app/events.json
     # It's good practice to create the events.json file on the host

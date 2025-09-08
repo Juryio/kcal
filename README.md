@@ -27,7 +27,7 @@ A simple web application to display a calendar and populate it with events from 
     ```bash
     npm start
     ```
-4.  Open your browser and navigate to `http://localhost:8080`.
+4.  Open your browser and navigate to `http://localhost:8282`.
 
 ### Running with Docker Compose
 
@@ -40,7 +40,7 @@ A simple web application to display a calendar and populate it with events from 
     ```bash
     docker-compose up --build
     ```
-4.  Open your browser and navigate to `http://localhost:8080`.
+4.  Open your browser and navigate to `http://localhost:8282`.
 
 To stop the application, press `Ctrl+C` in the terminal where `docker-compose` is running, and then run:
 ```bash
