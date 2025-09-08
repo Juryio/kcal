@@ -7,9 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Shift Calendar</h1>
+    <div class="header">
+        <h1>Shift Calendar</h1>
+        <button id="dark-mode-toggle">Toggle Dark Mode</button>
+    </div>
     <div class="container">
         <div class="calendar-container">
+            <div class="calendar-header">
+                <button id="prev-month">&lt;</button>
+                <h2 id="month-year"></h2>
+                <button id="next-month">&gt;</button>
+            </div>
             <div id="calendar"></div>
         </div>
         <div class="input-container">

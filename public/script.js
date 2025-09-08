@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendar = document.getElementById('calendar');
     const rawTextInput = document.getElementById('raw-text');
     const populateButton = document.getElementById('populate-calendar');
+    const monthYearDisplay = document.getElementById('month-year');
+    const prevMonthButton = document.getElementById('prev-month');
+    const nextMonthButton = document.getElementById('next-month');
+    const darkModeToggleButton = document.getElementById('dark-mode-toggle');
 
     const today = new Date();
     let currentMonth = today.getMonth();
@@ -54,12 +58,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return events;
     }
 
-    async function renderCalendar(month, year, events) {
+    async function renderCalendar(month, year) {
+        const events = await fetchEvents();
         calendar.innerHTML = '';
+        monthYearDisplay.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        // Create headers for days of the week
         const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         daysOfWeek.forEach(day => {
             const dayHeader = document.createElement('div');
@@ -68,15 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
             calendar.appendChild(dayHeader);
         });
 
-
-        // Create blank days for the first week
         for (let i = 0; i < firstDay; i++) {
             const blankDay = document.createElement('div');
             blankDay.classList.add('day', 'blank');
             calendar.appendChild(blankDay);
         }
 
-        // Create days of the month
         for (let i = 1; i <= daysInMonth; i++) {
             const dayCell = document.createElement('div');
             dayCell.classList.add('day');
@@ -112,14 +115,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newEvents.length > 0) {
             await saveEvents(newEvents);
             rawTextInput.value = ''; // Clear input
-            const allEvents = await fetchEvents();
-            renderCalendar(currentMonth, currentYear, allEvents);
+            renderCalendar(currentMonth, currentYear);
         }
     });
 
-    async function init() {
-        const events = await fetchEvents();
-        renderCalendar(currentMonth, currentYear, events);
+    prevMonthButton.addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    nextMonthButton.addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    darkModeToggleButton.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            localStorage.removeItem('darkMode');
+        }
+    });
+
+    function init() {
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+        renderCalendar(currentMonth, currentYear);
     }
 
     init();
