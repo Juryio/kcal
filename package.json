@@ -14,13 +14,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/Juryio/kcal/issues"
   },
   "homepage": "https://github.com/Juryio/kcal#readme",
   "dependencies": {
-    "body-parser": "^2.2.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "lowdb": "^6.0.1"
   }
 }
