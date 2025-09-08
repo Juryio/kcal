@@ -52,13 +52,22 @@ docker-compose down
 ## How to Use
 
 1.  Open the application in your browser.
-2.  In the "Paste Raw Text" area, enter your event data in the following format:
+2.  In the "Paste Raw Text" area, paste your schedule. The parser is designed to be flexible, but it expects a format similar to this:
+
     ```
-    YYYY-MM-DD: Event Title
+	September 2025	►
+    Mo	Di	Mi	Do	Fr	Sa	So
+    W
+    1
+    14:00
+    20:00
+    Work
+    2
+    14:00
+    20:00
+    Work
+    ...
     ```
-    For example:
-    ```
-    2023-10-26: Morning Shift (9am-5pm)
-    2023-10-27: Vacation
-    ```
-3.  Click the "Populate Calendar" button. The calendar will update with your events.
+    The parser will automatically find the month and year. For each day, it looks for a block of text containing the day number, a start time, an end time, and a title.
+
+3.  Click the "Populate Calendar" button. The calendar will update with the events from the text.
