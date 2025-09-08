@@ -5,7 +5,7 @@ services:
     ports:
       - "8282:8282"
     volumes:
-      - event-data:/home/node/app/data
+      - event-data:/usr/src/app/data
 
 volumes:
   event-data:
