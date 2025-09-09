@@ -24,14 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function saveEvents(newEvents) {
+    async function saveEvents(data) {
         try {
             const response = await fetch('/api/events', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newEvents),
+                body: JSON.stringify(data),
             });
             if (!response.ok) {
                 throw new Error('Failed to save events');
@@ -42,9 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseRawText(text) {
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-        const events = [];
-
         const monthMap = {
             "january": 0, "januar": 0,
             "february": 1, "februar": 1,
@@ -65,19 +62,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const monthYearRegex = new RegExp(`(${monthNames.join('|')})\\s+(\\d{4})`, 'i');
         const monthYearMatch = text.match(monthYearRegex);
 
-        if (monthYearMatch) {
-            year = parseInt(monthYearMatch[2], 10);
-            const monthName = monthYearMatch[1].toLowerCase();
-            month = monthMap[monthName];
-        } else {
+        if (!monthYearMatch) {
             console.error("Could not determine month and year from text. Please ensure the month and year (e.g., 'September 2025') are present.");
             alert("Could not determine the month and year from the pasted text. Please make sure it's included.");
-            return [];
+            return { monthYear: null, events: [] };
         }
 
+        year = parseInt(monthYearMatch[2], 10);
+        const monthName = monthYearMatch[1].toLowerCase();
+        month = monthMap[monthName];
+        const parsedMonthYear = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+        // Clean up the text to remove grid-like artifacts and get a clean list of tokens.
+        const lines = text.split('\n')
+            .map(line => line.replace('►', '').trim()) // Remove navigator arrows and trim whitespace
+            .filter(line => !/^(Mo|Di|Mi|Do|Fr|Sa|So|Mon|Tue|Wed|Thu|Fri|Sat|Sun)/i.test(line.trim())) // Remove day-of-week headers
+            .filter(line => line.trim() !== 'W') // Remove week markers
+            .filter(line => !monthYearRegex.test(line)) // Remove the line with the month/year text
+            .filter(line => line); // Remove any empty lines that result from the cleaning
+
+        const events = [];
         let currentDay = 0;
         let currentMonth = month;
         let currentYear = year;
+        let firstDayFound = false;
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
@@ -85,7 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (/^\d{1,2}$/.test(line)) {
                 const day = parseInt(line, 10);
 
-                if (day < currentDay && currentDay > 20) { // Heuristic for month rollover
+                if (!firstDayFound) {
+                    // If this is the first day number we find and it's high (e.g., 29),
+                    // it belongs to the month before the one in the header.
+                    if (day > 20) {
+                        currentMonth--;
+                        if (currentMonth < 0) {
+                            currentMonth = 11;
+                            currentYear--;
+                        }
+                    }
+                    firstDayFound = true;
+                } else if (day < currentDay && currentDay > 20) {
+                    // If the day number drops from high to low (e.g., 31 -> 1),
+                    // we've rolled into the next month.
                     currentMonth++;
                     if (currentMonth > 11) {
                         currentMonth = 0;
@@ -114,20 +135,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: `${title} ${startTime}-${endTime}`
                     };
 
-                    // Check for an optional note on the next line
                     const nextLine4 = lines[i + 4];
                     if (nextLine4 && isNaN(parseInt(nextLine4, 10)) && !/^\d{2}:\d{2}$/.test(nextLine4)) {
                         eventData.note = nextLine4;
-                        i += 4; // Consume the note line as well
+                        i += 4;
                     } else {
-                        i += 3; // Consume only the event lines
+                        i += 3;
                     }
 
                     events.push(eventData);
                 }
             }
         }
-        return events;
+        return { monthYear: parsedMonthYear, events };
     }
 
     function getShiftType(event) {
@@ -230,10 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawText = rawTextInput.value;
         if (!rawText) return;
 
-        const newEvents = parseRawText(rawText);
-        if (newEvents.length > 0) {
-            await saveEvents(newEvents);
+        const { monthYear, events: newEvents } = parseRawText(rawText);
+
+        if (monthYear) {
+            await saveEvents({ monthYear, events: newEvents });
             rawTextInput.value = ''; // Clear input
+            // The parsed month might be different from the currently displayed month
+            const [year, month] = monthYear.split('-').map(Number);
+            currentYear = year;
+            currentMonth = month - 1;
             renderCalendar(currentMonth, currentYear);
         }
     });
