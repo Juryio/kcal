@@ -22,6 +22,22 @@ const db = new Low(adapter, { events: [] });
 // Read data from JSON file, creating the file with default data if it doesn't exist
 await db.read();
 
+// --- Data Migration for Unique IDs ---
+// One-time check to ensure all events have a unique ID.
+// This is for backwards compatibility with data created before the ID feature.
+let aMigrationWasNeeded = false;
+db.data.events.forEach(event => {
+    if (!event.id) {
+        event.id = `evt-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        aMigrationWasNeeded = true;
+    }
+});
+
+if (aMigrationWasNeeded) {
+    console.log('Database migration: Added unique IDs to older events.');
+    await db.write();
+}
+
 // --- Express App Setup ---
 const app = express();
 const port = process.env.PORT || 8282;
