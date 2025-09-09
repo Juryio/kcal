@@ -45,7 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         const events = [];
 
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthMap = {
+            "january": 0, "januar": 0,
+            "february": 1, "februar": 1,
+            "march": 2, "märz": 2, "maerz": 2,
+            "april": 3,
+            "may": 4, "mai": 4,
+            "june": 5, "juni": 5,
+            "july": 6, "juli": 6,
+            "august": 7,
+            "september": 8,
+            "october": 9, "oktober": 9,
+            "november": 10,
+            "december": 11, "dezember": 11
+        };
+        const monthNames = Object.keys(monthMap);
         let year, month;
 
         const monthYearRegex = new RegExp(`(${monthNames.join('|')})\\s+(\\d{4})`, 'i');
@@ -53,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (monthYearMatch) {
             year = parseInt(monthYearMatch[2], 10);
-            month = monthNames.findIndex(m => m.toLowerCase() === monthYearMatch[1].toLowerCase());
+            const monthName = monthYearMatch[1].toLowerCase();
+            month = monthMap[monthName];
         } else {
             console.error("Could not determine month and year from text. Please ensure the month and year (e.g., 'September 2025') are present.");
             alert("Could not determine the month and year from the pasted text. Please make sure it's included.");
