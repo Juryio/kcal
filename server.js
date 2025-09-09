@@ -35,23 +35,89 @@ app.get('/api/events', (req, res) => {
 });
 
 app.post('/api/events', async (req, res) => {
-    const { monthYear, events: newEvents } = req.body;
+    const { affectedMonths, events: newEvents } = req.body;
 
-    if (!monthYear || !/^\d{4}-\d{2}$/.test(monthYear)) {
-        return res.status(400).json({ message: 'Invalid data format: monthYear is missing or invalid.' });
+    if (!Array.isArray(affectedMonths) || affectedMonths.length === 0) {
+        return res.status(400).json({ message: 'Invalid data format: affectedMonths is missing or empty.' });
     }
     if (!Array.isArray(newEvents)) {
         return res.status(400).json({ message: 'Invalid data format: events must be an array.' });
     }
 
-    // Filter out events from the specified month to be replaced
-    const otherMonthsEvents = db.data.events.filter(event => !event.date.startsWith(monthYear));
+    // Filter out events from all specified months to be replaced
+    const otherMonthsEvents = db.data.events.filter(event => {
+        const eventMonth = event.date.substring(0, 7);
+        return !affectedMonths.includes(eventMonth);
+    });
 
-    // Combine the events from other months with the new events for the specified month
-    db.data.events = [...otherMonthsEvents, ...newEvents];
+    // Assign IDs to any new events that don't have one
+    const newEventsWithIds = newEvents.map(event => ({
+        ...event,
+        id: event.id || `evt-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    }));
+
+    // Combine the events from other months with the new events
+    db.data.events = [...otherMonthsEvents, ...newEventsWithIds];
 
     await db.write();
     res.status(201).json({ message: 'Events saved successfully.' });
+});
+
+app.delete('/api/events/:id', async (req, res) => {
+    const eventId = req.params.id;
+    const initialLength = db.data.events.length;
+    db.data.events = db.data.events.filter(event => event.id !== eventId);
+
+    if (db.data.events.length === initialLength) {
+        return res.status(404).json({ message: 'Event not found.' });
+    }
+
+    await db.write();
+    res.status(200).json({ message: 'Event deleted successfully.' });
+});
+
+app.post('/api/event', async (req, res) => {
+    const { title, date, startTime, endTime, note, color } = req.body;
+    if (!title || !date || !startTime || !endTime) {
+        return res.status(400).json({ message: 'Missing required event data.' });
+    }
+
+    const newEvent = {
+        id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        date: date,
+        title: `${title} ${startTime}-${endTime}`,
+        note: note || '',
+        color: color // Add color property
+    };
+
+    db.data.events.push(newEvent);
+    await db.write();
+    res.status(201).json(newEvent);
+});
+
+app.put('/api/events/:id', async (req, res) => {
+    const eventId = req.params.id;
+    const { title, date, startTime, endTime, note, color } = req.body;
+    if (!title || !date || !startTime || !endTime) {
+        return res.status(400).json({ message: 'Missing required event data.' });
+    }
+
+    const eventIndex = db.data.events.findIndex(event => event.id === eventId);
+    if (eventIndex === -1) {
+        return res.status(404).json({ message: 'Event not found.' });
+    }
+
+    const updatedEvent = {
+        ...db.data.events[eventIndex],
+        date: date,
+        title: `${title} ${startTime}-${endTime}`,
+        note: note || '',
+        color: color // Add/Update color property
+    };
+
+    db.data.events[eventIndex] = updatedEvent;
+    await db.write();
+    res.status(200).json(updatedEvent);
 });
 
 // --- Start Server ---
