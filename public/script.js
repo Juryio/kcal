@@ -6,6 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevMonthButton = document.getElementById('prev-month');
     const nextMonthButton = document.getElementById('next-month');
     const darkModeToggleButton = document.getElementById('dark-mode-toggle');
+    const addEventBtn = document.getElementById('add-event-btn');
+    const eventModal = document.getElementById('event-modal');
+    const eventForm = document.getElementById('event-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const eventIdInput = document.getElementById('event-id');
+    const eventTitleInput = document.getElementById('event-title');
+    const eventDateInput = document.getElementById('event-date');
+    const startTimeInput = document.getElementById('start-time');
+    const endTimeInput = document.getElementById('end-time');
+    const eventNoteInput = document.getElementById('event-note');
+    const eventColorInput = document.getElementById('event-color');
 
     const today = new Date();
     let currentMonth = today.getMonth();
@@ -38,6 +50,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error(error);
+        }
+    }
+
+    async function deleteEvent(eventId) {
+        try {
+            const response = await fetch(`/api/events/${eventId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete event');
+            }
+            // After successful deletion, re-render the calendar to show the change
+            await renderCalendar(currentMonth, currentYear);
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            alert(`Error deleting event: ${error.message}`);
         }
     }
 
@@ -147,7 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        return { monthYear: parsedMonthYear, events };
+        const affectedMonths = [...new Set(events.map(event => event.date.substring(0, 7)))];
+        if (affectedMonths.length === 0) {
+            affectedMonths.push(parsedMonthYear);
+        }
+        return { affectedMonths, events };
     }
 
     function getShiftType(event) {
@@ -214,10 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
             dayEvents.forEach(event => {
                 const eventElement = document.createElement('div');
                 eventElement.classList.add('event');
+                eventElement.onclick = () => openModal(event);
 
                 // --- Color Coding Logic ---
-                const shiftType = getShiftType(event);
-                eventElement.classList.add(`event-${shiftType}`);
+                if (event.color) {
+                    eventElement.style.backgroundColor = event.color;
+                } else {
+                    const shiftType = getShiftType(event);
+                    eventElement.classList.add(`event-${shiftType}`);
+                }
 
                 // Create structured content for the event block
                 const timeMatch = event.title.match(/(\d{2}:\d{2}-\d{2}:\d{2})/);
@@ -239,6 +277,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     eventElement.appendChild(noteElement);
                 }
 
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-event-btn');
+                deleteButton.innerHTML = '&times;'; // A simple 'X'
+                deleteButton.onclick = (e) => {
+                    e.stopPropagation(); // Prevent the event click from firing
+                    if (confirm('Are you sure you want to delete this event?')) {
+                        deleteEvent(event.id);
+                    }
+                };
+                eventElement.appendChild(deleteButton);
+
                 eventsContainer.appendChild(eventElement);
             });
 
@@ -250,13 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawText = rawTextInput.value;
         if (!rawText) return;
 
-        const { monthYear, events: newEvents } = parseRawText(rawText);
+        const { affectedMonths, events: newEvents } = parseRawText(rawText);
 
-        if (monthYear) {
-            await saveEvents({ monthYear, events: newEvents });
+        if (affectedMonths && affectedMonths.length > 0) {
+            await saveEvents({ affectedMonths, events: newEvents });
             rawTextInput.value = ''; // Clear input
             // The parsed month might be different from the currently displayed month
-            const [year, month] = monthYear.split('-').map(Number);
+            // We'll just use the first affected month to switch the view
+            const [year, month] = affectedMonths[0].split('-').map(Number);
             currentYear = year;
             currentMonth = month - 1;
             renderCalendar(currentMonth, currentYear);
@@ -287,6 +337,89 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('darkMode', 'enabled');
         } else {
             localStorage.removeItem('darkMode');
+        }
+    });
+
+    function closeModal() {
+        eventModal.style.display = 'none';
+    }
+
+    addEventBtn.addEventListener('click', () => openModal());
+    cancelBtn.addEventListener('click', closeModal);
+    eventModal.addEventListener('click', (e) => {
+        if (e.target === eventModal) {
+            closeModal();
+        }
+    });
+
+    function openModal(event = null) {
+        eventForm.reset();
+        if (event) {
+            modalTitle.textContent = 'Edit Event';
+            eventIdInput.value = event.id;
+            eventTitleInput.value = event.title.replace(/\s*\d{2}:\d{2}-\d{2}:\d{2}\s*/, '').trim();
+            eventDateInput.value = event.date;
+            eventNoteInput.value = event.note || '';
+            eventColorInput.value = event.color || '#3a87ad'; // Default color
+
+            const timeMatch = event.title.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
+            if (timeMatch) {
+                startTimeInput.value = timeMatch[1];
+                endTimeInput.value = timeMatch[2];
+            }
+        } else {
+            modalTitle.textContent = 'Add Event';
+            eventIdInput.value = '';
+            eventColorInput.value = '#3a87ad'; // Default color
+        }
+        eventModal.style.display = 'flex';
+    }
+
+    eventForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = eventIdInput.value;
+        const eventData = {
+            title: eventTitleInput.value,
+            date: eventDateInput.value,
+            startTime: startTimeInput.value,
+            endTime: endTimeInput.value,
+            note: eventNoteInput.value,
+            color: eventColorInput.value,
+        };
+
+        try {
+            let response;
+            if (id) {
+                // Update existing event
+                response = await fetch(`/api/events/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventData),
+                });
+            } else {
+                // Create new event
+                response = await fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventData),
+                });
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save event');
+            }
+
+            closeModal();
+            // Go to the month of the event that was just edited/created
+            const [year, month] = eventData.date.split('-').map(Number);
+            currentYear = year;
+            currentMonth = month - 1;
+            await renderCalendar(currentMonth, currentYear);
+
+        } catch (error) {
+            console.error('Error saving event:', error);
+            alert(`Error saving event: ${error.message}`);
         }
     });
 

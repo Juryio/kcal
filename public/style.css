@@ -20,6 +20,153 @@
     --dark-day-header-text: #b0b3b8;
 }
 
+.header-btn {
+    padding: 8px 16px;
+    border: none;
+    background-color: var(--primary-color);
+    color: #fff;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 20px;
+}
+
+.dark-mode .header-btn {
+    background-color: var(--dark-primary-color);
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.dark-mode .modal-content {
+    background: var(--dark-bg-color);
+}
+
+#event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#event-form label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+#event-form input,
+#event-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--day-border);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.dark-mode #event-form input,
+.dark-mode #event-form textarea {
+    background-color: var(--dark-bg-secondary);
+    border-color: var(--dark-day-border);
+    color: var(--dark-text-color);
+}
+
+.time-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.time-inputs > div {
+    flex: 1;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.form-buttons button {
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    border: none;
+    cursor: pointer;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.dark-mode .form-buttons button[type="submit"] {
+    background-color: var(--dark-primary-color);
+}
+
+.form-buttons button[type="button"] {
+    background-color: #ccc;
+}
+
+.dark-mode .form-buttons button[type="button"] {
+    background-color: #555;
+    color: #fff;
+}
+
+/* --- Delete Event Button --- */
+.event .delete-event-btn {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    padding: 1px 4px;
+    border-radius: 50%;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 10;
+}
+
+.event:hover .delete-event-btn {
+    opacity: 1; /* Show on hover */
+}
+
+.delete-event-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .event .delete-event-btn {
+    color: #eee;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .delete-event-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 body {
     font-family: var(--font-family);
     background-color: var(--bg-color);
